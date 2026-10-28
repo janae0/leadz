@@ -28,7 +28,7 @@ Reply watcher ◀─ Gmail API send ◀─ Send scheduler ◀──────�
 | Watcher | `src/watch/` | Every 10 minutes |
 | Maintenance | `src/jobs/maintenance.ts` | Daily (retention and Places data cleanup) |
 
-Two processes: `npm start` runs the web app, and `npm run worker` runs the scheduled jobs. Both apply database migrations on start.
+`npm start` runs the web app, and `npm run worker` runs the scheduled jobs. On a single-service host, set `RUN_JOBS=1` to run the jobs inside the web process instead. Both apply database migrations on start.
 
 ## The outreach lead's week
 
@@ -91,7 +91,7 @@ Follow-ups are pre-approved templates and are scheduled from when step 1 actuall
 
 ## Setup
 
-Requirements: Node 20+ and Postgres 14+.
+Requirements: Node 22.9+ and Postgres 14+.
 
 ```bash
 npm install
@@ -105,6 +105,15 @@ npm run worker                # scheduled jobs
 ```
 
 Then sign in as J, open **Admin**, and set the **mailing address**. Drafts can't pass validation without it.
+
+### Deploying on Railway
+
+`railway.json` tells Railway to build with Railpack (`npm run build`), start the web app with `npm start`, and health-check `/healthz`. Node 22 is pinned by `.node-version`.
+
+1. Add a **Postgres** database to the project. On the app service, set `DATABASE_URL` to `${{Postgres.DATABASE_URL}}`.
+2. Set the other variables from `.env.example`, at least `APP_BASE_URL` (the service's public https URL), `SESSION_SECRET`, `UNSUBSCRIBE_SECRET`, and `NODE_ENV=production`.
+3. Set `RUN_JOBS=1` so the scheduled jobs run inside the web service. Without it, nothing is sent and no leads are pulled.
+4. After the first deploy, create the users from the service shell: `npm run cli -- create-user ...`.
 
 ### Keys and accounts
 
